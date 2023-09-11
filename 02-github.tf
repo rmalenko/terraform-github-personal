@@ -3,7 +3,7 @@ module "github_personal" {
   repo_name      = "terraform-github-personal"
   username       = "rmalenko"
   branches       = ["production", "development", "staging"]
-  default_branch = "development"
+  default_branch = "production"
   environment_git = {
     production = {
       env_name               = "production"
