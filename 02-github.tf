@@ -1,11 +1,10 @@
-# Terraform. Github personal repository
-
-This module creates a GitHub personal repository with the following branches `["production", "development", "staging"]` and with the same names for environments. Look at `var.branches`. Each of the environments can have variables and secrets. You can define this in file the`02-github.tf`.
-
-For example, this configuration creates environments `production`, `development`, `staging`. Each has variables `hostname` and `hostname_02` and secret `ssh_key` and `ssh_key_02`. You may add as many as you need.
-
-```
-environment_git = {
+module "github_personal" {
+  source         = "./modules"
+  repo_name      = "terraform-github-personal"
+  username       = "rmalenko"
+  branches       = ["production", "development", "staging"]
+  default_branch = "development"
+  environment_git = {
     production = {
       env_name               = "production"
       env_var_name           = "hostname"
@@ -55,5 +54,4 @@ environment_git = {
       secret_value_encrypted = base64encode("a secret value")
     }
   }
-
-¸```
+}

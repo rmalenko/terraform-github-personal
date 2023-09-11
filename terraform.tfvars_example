@@ -1,0 +1,4 @@
+# Grained
+# GITHUB_TOKEN = "github_pat_"
+# classic
+GITHUB_TOKEN = "ghp_"
