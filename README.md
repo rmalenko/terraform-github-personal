@@ -4,9 +4,9 @@ This module creates a GitHub personal repository with the following branches `["
 
 For example, this configuration creates environments `production`, `development`, `staging`. Each has variables `hostname` and `hostname_02` and secret `ssh_key` and `ssh_key_02`. You may add as many as you need.
 
-```
-environment_git = {
-    production = {
+```hcl
+environment_git = [
+    {
       env_name               = "production"
       env_var_name           = "hostname"
       env_var_value          = "%s"
@@ -14,39 +14,47 @@ environment_git = {
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
     },
-    production_02 = {
+    {
       env_name               = "production"
       env_var_name           = "hostname_02"
       env_var_value          = "%s"
       secret_name            = "ssh_key_02"
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
-    }
-    staging = {
+    },
+    {
+      env_name               = "production"
+      env_var_name           = "ssh_user"
+      env_var_value          = "%s"
+      secret_name            = "ssh_key_02"
+      secret_value_plaintext = "%s"
+      secret_value_encrypted = base64encode("a secret value")
+    },
+    {
       env_name               = "staging"
       env_var_name           = "hostname"
       env_var_value          = "%s"
       secret_name            = "ssh_key"
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
-    }
-    staging_02 = {
+    },
+    {
       env_name               = "staging"
       env_var_name           = "hostname_02"
       env_var_value          = "%s"
       secret_name            = "ssh_key_02"
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
-    }
-    development = {
+    },
+    {
       env_name               = "development"
       env_var_name           = "hostname"
       env_var_value          = "%s"
       secret_name            = "ssh_key"
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
-    }
-    development_02 = {
+    },
+    {
       env_name               = "development"
       env_var_name           = "hostname_02"
       env_var_value          = "%s"
@@ -54,6 +62,5 @@ environment_git = {
       secret_value_plaintext = "%s"
       secret_value_encrypted = base64encode("a secret value")
     }
-  }
-
+  ]
 ¸```
