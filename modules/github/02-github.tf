@@ -4,13 +4,13 @@ data "github_user" "aws" {
 
 resource "github_repository" "aws" {
   name                 = var.repo_name
-  description          = "AWS ALB EC2 R53 IAM"
-  visibility           = "public"
-  auto_init            = true
-  has_issues           = true
-  has_discussions      = true
-  gitignore_template   = "Terraform"
-  license_template     = "apache-2.0"
+  description          = var.description
+  visibility           = var.visibility
+  auto_init            = var.auto_init
+  has_issues           = var.has_issues
+  has_discussions      = var.has_discussions
+  gitignore_template   = var.gitignore_template
+  license_template     = var.license_template
   vulnerability_alerts = true
   security_and_analysis {
     secret_scanning {
@@ -22,8 +22,13 @@ resource "github_repository" "aws" {
   }
 }
 
+locals {
+  unique_environments = tolist(distinct([for rule in var.environment_git : rule.env_name if can(rule.env_name)]))
+  environment         = { for env in local.unique_environments : env => {} }
+}
+
 resource "github_repository_environment" "aws" {
-  for_each    = toset([for env in values(var.environment_git) : env.env_name]) # dedublicated 
+  for_each    = local.environment
   environment = each.key
   repository  = github_repository.aws.name
   reviewers {
@@ -37,21 +42,36 @@ resource "github_repository_environment" "aws" {
 }
 
 resource "github_actions_environment_variable" "aws" {
-  for_each      = var.environment_git
+  for_each = {
+    for idx, rule in var.environment_git :
+    idx => {
+      env_name      = can(rule.env_name) ? rule.env_name : null
+      env_var_name  = can(rule.env_var_name) ? rule.env_var_name : null
+      env_var_value = can(rule.env_var_value) ? rule.env_var_value : null
+    }
+  }
   repository    = github_repository.aws.name
-  environment   = lookup(var.environment_git[each.key], "env_name", null)
-  variable_name = lookup(var.environment_git[each.key], "env_var_name", null)
-  value         = lookup(var.environment_git[each.key], "env_var_value", null)
+  environment   = each.value.env_name
+  variable_name = each.value.env_var_name
+  value         = each.value.env_var_value
   depends_on    = [github_repository_environment.aws]
 }
 
 resource "github_actions_environment_secret" "aws" {
-  for_each    = var.environment_git
-  repository  = github_repository.aws.name
-  environment = lookup(var.environment_git[each.key], "env_name", null)
-  secret_name = lookup(var.environment_git[each.key], "secret_name", null)
-  #   plaintext_value = lookup(var.environment_git[each.key], "secret_value_plaintext", null)
-  encrypted_value = lookup(var.environment_git[each.key], "secret_value_encrypted", null)
+  for_each = {
+    for idx, rule in var.environment_git :
+    idx => {
+      env_name               = can(rule.env_name) ? rule.env_name : null
+      secret_name            = can(rule.secret_name) ? rule.secret_name : null
+      secret_value_plaintext = can(rule.secret_value_plaintext) ? rule.secret_value_plaintext : null
+      secret_value_encrypted = can(rule.secret_value_encrypted) ? rule.secret_value_encrypted : null
+    }
+  }
+  repository      = github_repository.aws.name
+  environment     = each.value.env_name
+  secret_name     = each.value.secret_name
+  # plaintext_value = each.value.secret_value_plaintext
+  encrypted_value = each.value.secret_value_encrypted
   depends_on      = [github_repository_environment.aws]
 }
 
