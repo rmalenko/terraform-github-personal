@@ -68,35 +68,3 @@ module "github_personal" {
       env_var_value = local.gituser_ssh
     },
   ]
-
-  secrets_git = [
-    {
-      env_name               = "production"
-      secret_name            = "SSH_KEY_DSA"
-      secret_value_plaintext = local.private_key_ecdsa
-      secret_value_encrypted = base64encode(local.private_key_ecdsa)
-    },
-    {
-      env_name               = "production"
-      secret_name            = "SSH_KEY_RSA"
-      secret_value_plaintext = local.private_key_rsa
-      secret_value_encrypted = base64encode(local.private_key_rsa)
-    },
-
-    {
-      env_name               = "staging"
-      secret_name            = "SSH_KEY_RSA"
-      secret_value_plaintext = local.private_key_rsa
-      secret_value_encrypted = base64encode(local.private_key_rsa)
-    },
-
-    {
-      env_name               = "development"
-      secret_name            = "SSH_KEY_RSA"
-      secret_value_plaintext = local.private_key_rsa
-      secret_value_encrypted = base64encode(local.private_key_rsa)
-    },
-  ]
-}
-
-¸```
