@@ -22,13 +22,8 @@ resource "github_repository" "aws" {
   }
 }
 
-locals {
-  unique_environments = tolist(distinct([for rule in var.environment_git : rule.env_name if can(rule.env_name)]))
-  environment         = { for env in local.unique_environments : env => {} }
-}
-
 resource "github_repository_environment" "aws" {
-  for_each    = local.environment
+  for_each    = toset(distinct([for rule in setunion(var.environment_git, var.secrets_git) : rule.env_name if can(rule.env_name)]))
   environment = each.key
   repository  = github_repository.aws.name
   reviewers {
@@ -59,7 +54,7 @@ resource "github_actions_environment_variable" "aws" {
 
 resource "github_actions_environment_secret" "aws" {
   for_each = {
-    for idx, rule in var.environment_git :
+    for idx, rule in var.secrets_git :
     idx => {
       env_name               = can(rule.env_name) ? rule.env_name : null
       secret_name            = can(rule.secret_name) ? rule.secret_name : null
@@ -70,9 +65,9 @@ resource "github_actions_environment_secret" "aws" {
   repository      = github_repository.aws.name
   environment     = each.value.env_name
   secret_name     = each.value.secret_name
-  # plaintext_value = each.value.secret_value_plaintext
-  encrypted_value = each.value.secret_value_encrypted
-  depends_on      = [github_repository_environment.aws]
+  plaintext_value = each.value.secret_value_plaintext
+  # encrypted_value = each.value.secret_value_encrypted
+  depends_on = [github_repository_environment.aws]
 }
 
 resource "github_branch" "aws" {
@@ -93,20 +88,20 @@ resource "github_branch_protection" "aws" {
   pattern          = var.default_branch
   enforce_admins   = true
   allows_deletions = true
-  required_status_checks {
-    strict   = false
-    contexts = ["ci/travis"]
-  }
-  required_pull_request_reviews {
-    dismiss_stale_reviews = true
-    restrict_dismissals   = true
-    # dismissal_restrictions = [
-    #   data.github_user.example.node_id,
-    #   github_team.example.node_id,
-    #   "/exampleuser",
-    #   "exampleorganization/exampleteam",
-    # ]
-  }
+  # required_status_checks {
+  #   strict   = false
+  #   contexts = ["ci/travis"]
+  # }
+  # required_pull_request_reviews {
+  #   dismiss_stale_reviews = true
+  #   restrict_dismissals   = true
+  #   # dismissal_restrictions = [
+  #   #   data.github_user.example.node_id,
+  #   #   github_team.example.node_id,
+  #   #   "/exampleuser",
+  #   #   "exampleorganization/exampleteam",
+  #   # ]
+  # }
   #   push_restrictions = [
   #     data.github_user.example.node_id,
   #     "/exampleuser",
@@ -129,4 +124,17 @@ resource "github_issue_label" "aws" {
   repository = github_repository.aws.name
   name       = "Urgent"
   color      = "FF0000"
+}
+
+resource "github_repository_file" "aws" {
+  repository = github_repository.aws.name
+  branch     = "development"
+  # file                = ".github/workflows/ssh_action.yml"
+  file                = "ssh_action.yml"
+  content             = file("${path.module}/templates/ssh_action.yml")
+  commit_message      = "Workflow template. Managed by Terraform."
+  commit_author       = "nko"
+  commit_email        = "nko@gmail.com"
+  overwrite_on_create = true
+  depends_on          = [github_repository.aws]
 }
