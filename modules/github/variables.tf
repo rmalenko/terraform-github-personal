@@ -21,12 +21,24 @@ variable "default_branch" {
 variable "environment_git" {
   description = "Environment configurations for the GitHub module"
   type = list(object({
-    env_name               = string
-    env_var_name           = string
-    env_var_value          = string
-    secret_name            = string
-    secret_value_plaintext = string
-    secret_value_encrypted = string
+    env_name               = optional(string)
+    env_var_name           = optional(string)
+    env_var_value          = optional(string)
+    secret_name            = optional(string)
+    secret_value_plaintext = optional(string)
+    secret_value_encrypted = optional(string)
+  }))
+}
+
+variable "secrets_git" {
+  description = "Environment configurations for the GitHub module"
+  type = list(object({
+    env_name               = optional(string)
+    env_var_name           = optional(string)
+    env_var_value          = optional(string)
+    secret_name            = optional(string)
+    secret_value_plaintext = optional(string)
+    secret_value_encrypted = optional(string)
   }))
 }
 
@@ -61,4 +73,19 @@ variable "gitignore_template" {
 
 variable "license_template" {
   type = string
+}
+
+variable "gituser_ssh" {
+  type        = string
+  description = "User name to use for SSH in Github actions"
+}
+
+variable "private_key_ecdsa" {
+  type        = string
+  description = "SSH key to use for SSH in Github actions"
+}
+
+variable "private_key_rsa" {
+  type        = string
+  description = "SSH key to use for SSH in Github actions"
 }
